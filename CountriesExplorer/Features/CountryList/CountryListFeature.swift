@@ -8,15 +8,25 @@ struct CountryListFeature {
     var countries: [Country] = []
     var query: String = ""
     var isLoading = false
-    var selection: Country? // 詳細表示用（簡易）
+    var selection: Country? // For detail presentation (simple)
+    @Presents var alert: AlertState<Action.Alert>?
+    var lastErrorMessage: String?
   }
 
   enum Action: BindableAction, Equatable {
     case onAppear
-    case fetchResponse(Result<[Country], APIError>)
+    case fetchResponseSuccess([Country])
+    case fetchResponseFailure(HttpClientError)
     case setQuery(String)
     case setSelection(Country?)
+
     case binding(BindingAction<State>)
+    case alert(PresentationAction<Alert>)
+
+      @CasePathable
+      enum Alert {
+          case alertOkTapped
+      }
   }
 
   @Dependency(\.countryClient) var countryClient
@@ -31,21 +41,29 @@ struct CountryListFeature {
         return .run { send in
           do {
             let list = try await countryClient.fetchAll()
-            await send(.fetchResponse(.success(list)))
-          } catch let api as APIError {
-            await send(.fetchResponse(.failure(api)))
-          } catch {
-            await send(.fetchResponse(.failure(.unknown)))
+            await send(.fetchResponseSuccess(list))
+          } catch let error as HttpClientError {
+            await send(.fetchResponseFailure(error))
           }
         }
 
-      case .fetchResponse(.success(let list)):
+      case .fetchResponseSuccess(let list):
         state.isLoading = false
         state.countries = list
         return .none
 
-      case .fetchResponse(.failure):
+      case .fetchResponseFailure(let error):
         state.isLoading = false
+        state.lastErrorMessage = String(describing: error)
+        state.alert = AlertState {
+          TextState("Failed to load")
+        } actions: {
+          ButtonState(role: .cancel, action: .alertOkTapped) {
+            TextState("OK")
+          }
+        } message: {
+          TextState(error.localizedDescription)
+        }
         return .none
 
       case .setQuery(let q):
@@ -58,12 +76,20 @@ struct CountryListFeature {
 
       case .binding:
         return .none
+
+      case .alert(.dismiss):
+          state.alert = nil
+          return .none
+
+      case .alert(.presented(.alertOkTapped)):
+          state.alert = nil
+          return .none
       }
     }
   }
 }
 
-// 検索フィルタ用のヘルパ
+// Helper for search filtering
 extension Array where Element == Country {
   func filter(query: String) -> [Country] {
     let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
