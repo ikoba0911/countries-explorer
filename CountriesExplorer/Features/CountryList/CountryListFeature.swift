@@ -8,7 +8,7 @@ struct CountryListFeature {
     var countries: [Country] = []
     var query: String = ""
     var isLoading = false
-    var selection: Country? // 詳細表示用（簡易）
+    var selection: Country? // For detail presentation (simple)
     @Presents var alert: AlertState<Action.Alert>?
     var lastErrorMessage: String?
   }
@@ -56,7 +56,7 @@ struct CountryListFeature {
         state.isLoading = false
         state.lastErrorMessage = String(describing: error)
         state.alert = AlertState {
-          TextState("読み込みに失敗しました")
+          TextState("Failed to load")
         } actions: {
           ButtonState(role: .cancel, action: .alertOkTapped) {
             TextState("OK")
@@ -89,7 +89,7 @@ struct CountryListFeature {
   }
 }
 
-// 検索フィルタ用のヘルパ
+// Helper for search filtering
 extension Array where Element == Country {
   func filter(query: String) -> [Country] {
     let q = query.trimmingCharacters(in: .whitespacesAndNewlines)

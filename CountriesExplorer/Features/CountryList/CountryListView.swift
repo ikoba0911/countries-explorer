@@ -55,10 +55,10 @@ struct CountryListView: View {
         .font(.system(size: 40, weight: .semibold))
         .foregroundStyle(.orange)
 
-      Text("読み込みに失敗しました")
+      Text("Failed to load")
         .font(.headline)
 
-      Text("ネットワーク接続を確認して、もう一度お試しください。")
+      Text("Please check your network connection and try again.")
         .font(.subheadline)
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
@@ -68,7 +68,7 @@ struct CountryListView: View {
         // Trigger reload without depending on alert state
         store.send(.onAppear)
       } label: {
-        Text("再読み込み")
+        Text("Retry")
           .frame(maxWidth: .infinity)
       }
       .buttonStyle(.borderedProminent)
