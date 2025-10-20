@@ -19,6 +19,8 @@ struct CountryListView: View {
       Group {
         if store.isLoading && store.countries.isEmpty {
           loadingView
+        } else if !store.isLoading && store.countries.isEmpty {
+          errorView
         } else {
           listView
         }
@@ -26,6 +28,7 @@ struct CountryListView: View {
       .navigationTitle("Countries")
       .searchable(text: $store.query, prompt: "Name / Capital / Region")
       .onAppear { store.send(.onAppear) }
+      .alert($store.scope(state: \.alert, action: \.alert))
       .sheet(item: $selection) { selection in
         if let country = store.countries.first(where: { $0.id == selection.id }) {
           CountryDetailView(country: country)
@@ -43,6 +46,37 @@ struct CountryListView: View {
   @ViewBuilder
   private var loadingView: some View {
     ProgressView("Loading countries…")
+  }
+
+  @ViewBuilder
+  private var errorView: some View {
+    VStack(spacing: 16) {
+      Image(systemName: "exclamationmark.triangle")
+        .font(.system(size: 40, weight: .semibold))
+        .foregroundStyle(.orange)
+
+      Text("読み込みに失敗しました")
+        .font(.headline)
+
+      Text("ネットワーク接続を確認して、もう一度お試しください。")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
+        .padding(.horizontal)
+
+      Button {
+        // Trigger reload without depending on alert state
+        store.send(.onAppear)
+      } label: {
+        Text("再読み込み")
+          .frame(maxWidth: .infinity)
+      }
+      .buttonStyle(.borderedProminent)
+      .controlSize(.large)
+      .padding(.horizontal)
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .padding()
   }
 
   @ViewBuilder
