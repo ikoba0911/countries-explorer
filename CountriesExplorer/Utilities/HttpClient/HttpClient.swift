@@ -11,7 +11,7 @@ final class HttpClient {
 
   func request<S: HttpRequestSetting>(_ setting: S) async throws -> S.Output {
     guard let url = setting.endpoint.url else {
-        throw HttpClientError.invalidURL
+        throw HttpClientExceptionInvalidURL()
     }
 
     let headers = await setting.headers()

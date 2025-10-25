@@ -28,22 +28,24 @@ enum HttpClientError: Error, Equatable {
   case unknown
 }
 
-/// Maps arbitrary Error values produced by the HTTP client into a unified HttpClientError
-func mapToHttpClientError(_ error: Error) -> HttpClientError {
-  switch error {
-  case is HttpClientExceptionUndefined:
-    return .undefined
-  case is HttpClientExceptionInvalidURL:
-    return .invalidURL
-  case let e as HttpClientExceptionDecodeFormat:
-    return .decodeFormat(source: e.source, message: e.message, offset: e.offset)
-  case let e as HttpClientExceptionTypeError:
-    return .typeError(message: e.message, stackTrace: e.stackTrace)
-  case let e as HttpClientExceptionClientError:
-    return .clientError(code: e.httpStatusCode)
-  case let e as HttpClientExceptionServerError:
-    return .serverError(code: e.httpStatusCode)
-  default:
-    return .unknown
-  }
+extension HttpClientError {
+    /// Maps arbitrary Error values produced by the HTTP client into a unified HttpClientError
+    static func mapToHttpClientError(_ error: Error) -> HttpClientError {
+        switch error {
+        case is HttpClientExceptionUndefined:
+            return .undefined
+        case is HttpClientExceptionInvalidURL:
+            return .invalidURL
+        case let e as HttpClientExceptionDecodeFormat:
+            return .decodeFormat(source: e.source, message: e.message, offset: e.offset)
+        case let e as HttpClientExceptionTypeError:
+            return .typeError(message: e.message, stackTrace: e.stackTrace)
+        case let e as HttpClientExceptionClientError:
+            return .clientError(code: e.httpStatusCode)
+        case let e as HttpClientExceptionServerError:
+            return .serverError(code: e.httpStatusCode)
+        default:
+            return .unknown
+        }
+    }
 }

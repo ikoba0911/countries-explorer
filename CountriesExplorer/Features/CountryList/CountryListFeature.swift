@@ -42,8 +42,8 @@ struct CountryListFeature {
           do {
             let list = try await countryClient.fetchAll()
             await send(.fetchResponseSuccess(list))
-          } catch let error as HttpClientError {
-            await send(.fetchResponseFailure(error))
+          } catch let error {
+              await send(.fetchResponseFailure(HttpClientError.mapToHttpClientError(error)))
           }
         }
 
